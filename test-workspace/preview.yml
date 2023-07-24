@@ -1,0 +1,47 @@
+general:
+  hostname: localhost
+  webhook-port: 8080
+  port-range: 10000-11000
+  working-directory: ./previews
+  nginx-config: /etc/nginx/snippets/preview.conf
+  git-source: git@github.com:dzikoysk/test-repo.git
+  ssh-key: /home/dzikoysk/.ssh/github_testrepo
+variables:
+  env-id: id()
+  preview-url: url()
+  backend-port: port()
+  frontend-port: port()
+  postgres-port: port()
+branches:
+  '*': preview
+pre:
+  commands:
+    - docker pull postgres:latest
+services:
+  postgres:
+    start-commands:
+      - docker run -d -p ${postgres-port}:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres --name postgres${env-id}
+    stop-commands:
+      - docker stop postgres${env-id}
+      - docker rm postgres${env-id}
+  app1:
+    source: ./app1
+    public: api.${preview-url}:80
+    start-commands:
+      - gradlew bootRun
+    stop-commands:
+      - $exit
+    environment:
+      DATABASE_URL: jdbc:postgresql://${preview-url}:${postgres-port}/postgres
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+  app2:
+    source: ./app2
+    public: ${preview-url}:80
+    start-commands:
+      - npm run start
+    stop-commands:
+      - $exit
+    environment:
+      NODE_ENV: production
+      BACKEND: ${preview-url}:${backend-port}
