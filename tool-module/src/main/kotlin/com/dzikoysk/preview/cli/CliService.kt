@@ -31,7 +31,7 @@ object CliService {
             .command("sh", "-c", command)
             .directory(processDir)
             .inheritIO()
-            .also { it.environment().putAll(env)}
+            .also { it.environment().putAll(env) }
             .start()
 
         val preGobbler = StreamGobbler(process.inputStream) { println("$service | $it") }

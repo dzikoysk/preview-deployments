@@ -83,7 +83,8 @@ class PreviewEnvironment(
                         )
                     },
                     startCommands = service.startCommands.map { it.getProcessedValue() },
-                    stopCommands = service.stopCommands.map { it.getProcessedValue() }
+                    stopCommands = service.stopCommands.map { it.getProcessedValue() },
+                    environment = service.environment?.mapValues { (_, value) -> value.getProcessedValue() }
                 )
             }
             .onEach { (_, service) ->
