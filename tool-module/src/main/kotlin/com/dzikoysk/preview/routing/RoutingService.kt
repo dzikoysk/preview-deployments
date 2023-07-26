@@ -58,8 +58,9 @@ class RoutingService(
             StandardOpenOption.TRUNCATE_EXISTING,
             StandardOpenOption.WRITE
         )
-        val x = null as String? to ""
+
         CliService.createProcess(
+            service = "Nginx",
             command = "nginx -t && nginx -s reload",
             dir = workDir
         ).waitFor()

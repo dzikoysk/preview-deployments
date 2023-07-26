@@ -38,11 +38,13 @@ class PreviewEnvironment(
         when {
             Files.exists(branchDir.resolve(".git")) ->
                 CliService.createProcess(
+                    service = "Git",
                     command = "git $sshCommand pull --force; git checkout $branch --force",
                     dir = branchDir
                 ).waitFor()
             else ->
                 CliService.createProcess(
+                    service = "Git",
                     command = "git $sshCommand clone ${config.general.gitSource} .; git checkout $branch",
                     dir = branchDir
                 ).waitFor()
@@ -65,9 +67,9 @@ class PreviewEnvironment(
         config.pre?.commands
             ?.map { it.getProcessedValue() }
             ?.forEach { command ->
-                val preProcess = CliService.createProcess(command, branchDir)
+                val preProcess = CliService.createProcess("Pre", command, branchDir)
                 val exitCode = preProcess.waitFor()
-                println("Pre process $command exited with code $exitCode")
+                println("Pre | Pre process $command exited with code $exitCode")
             }
 
         config.services
@@ -99,8 +101,10 @@ class PreviewEnvironment(
                         config = service,
                         childProcess = service.startCommands.map {
                             CliService.createProcess(
+                                service = name,
                                 command = it,
-                                dir = branchDir.resolve(service.source ?: "")
+                                dir = branchDir.resolve(service.source ?: ""),
+                                env = service.environment ?: emptyMap()
                             )
                         }
                     )
@@ -114,7 +118,7 @@ class PreviewEnvironment(
         }
 
         processes.forEach { serviceProcess ->
-            println("Stopping process ${serviceProcess.name}")
+            println("${serviceProcess.name} | Stopping process ${serviceProcess.name}")
             serviceProcess.childProcess.forEach {
                 try {
                     it.destroy()
@@ -128,12 +132,19 @@ class PreviewEnvironment(
                 try {
                     when(it) {
                         "\$exit" -> { /* process already stopped */ }
-                        else -> CliService.createProcess(it, branchDir).waitFor()
+                        else -> CliService.createProcess(
+                            service = serviceProcess.name,
+                            command = it,
+                            dir = branchDir
+                        ).waitFor()
                     }
                 } catch (e: Exception) {
                     println("Failed to stop process ${serviceProcess.name}")
                     e.printStackTrace()
                 }
+            }
+            serviceProcess.config.public?.let {
+                routingService.unregisterRoute(it.url)
             }
         }
 

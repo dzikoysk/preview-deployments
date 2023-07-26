@@ -51,6 +51,7 @@ class RunnerService(
         if (environments.containsKey(branch)) {
             environments[branch]!!.destroyPreview()
             environments.remove(branch)
+            routingService.regenerateConfig()
         }
     }
 
