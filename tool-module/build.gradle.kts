@@ -10,5 +10,7 @@ application {
 dependencies {
     implementation("com.charleskorn.kaml:kaml:0.54.0")
     implementation("io.javalin:javalin-bundle:5.6.1")
-    implementation("org.apache.commons:commons-exec:1.3")
+    implementation("io.javalin:javalin-rendering:5.6.0")
+    implementation("gg.jte:jte:2.3.2")
+    implementation("gg.jte:jte-kotlin:2.3.2")
 }

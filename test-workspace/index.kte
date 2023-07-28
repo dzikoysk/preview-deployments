@@ -1,0 +1,48 @@
+@import com.dzikoysk.preview.ui.UiModel
+@param model: UiModel
+
+<html lang="en">
+    <head>
+        <title>Feature-preview</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        </style>
+    </head>
+    <body class="min-h-full bg-zinc-900">
+        <div class="container mx-auto">
+            @if(!model.loggedIn)
+                <div class="flex justify-center pt-10">
+                    <form
+                        method="post"
+                        action="/login"
+                        class="flex flex-col content-center w-96 spacing-4 bg-zinc-800 px-6 py-10 rounded-xl"
+                    >
+                        <h1 class="font-bold text-xl text-center text-white">
+                            Access the dashboard
+                        </h1>
+                        <label for="username" class="pt-6">
+                            <input name="username" type="text" class="border w-full rounded-xl px-2 py-1" placeholder="Username">
+                        </label>
+                        <label class="py-2">
+                            <input name="password" type="password" class="border w-full rounded-xl px-2 py-1" placeholder="Password">
+                        </label>
+                        <button type="submit" class="border bg-white text-black rounded-xl py-1">Login</button>
+                    </form>
+                </div>
+            @else
+                <div class="flex flex-col justify-center pt-10">
+                    <div>
+                        Webhook url: ${model.webhookUrl}
+                    </div>
+                    <a href="/logout">Logout</a>
+                </div>
+            @endif
+        </div>
+    </body>
+</html>
