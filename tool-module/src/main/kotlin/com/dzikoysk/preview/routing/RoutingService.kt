@@ -63,7 +63,7 @@ class RoutingService(
             service = "Nginx",
             command = "nginx -t && nginx -s reload",
             dir = workDir
-        ).waitFor()
+        ).process.waitFor()
     }
 
     fun unregisterRoute(url: PublicUrl) {

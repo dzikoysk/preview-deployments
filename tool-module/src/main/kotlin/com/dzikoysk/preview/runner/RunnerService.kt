@@ -61,4 +61,7 @@ class RunnerService(
         }
     }
 
+    fun getRunningEnvironments(): List<PreviewEnvironment> =
+        environments.values.toList()
+
 }

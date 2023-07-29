@@ -14,35 +14,69 @@
         }
         </style>
     </head>
-    <body class="min-h-full bg-zinc-900">
+    <body class="min-h-full bg-zinc-900 text-white">
         <div class="container mx-auto">
             @if(!model.loggedIn)
                 <div class="flex justify-center pt-10">
                     <form
                         method="post"
-                        action="/login"
+                        action="/api/login"
                         class="flex flex-col content-center w-96 spacing-4 bg-zinc-800 px-6 py-10 rounded-xl"
                     >
                         <h1 class="font-bold text-xl text-center text-white">
                             Access the dashboard
                         </h1>
                         <label for="username" class="pt-6">
-                            <input name="username" type="text" class="border w-full rounded-xl px-2 py-1" placeholder="Username">
+                            <input name="username" type="text" class="border w-full rounded-xl px-2 py-1 text-black" placeholder="Username">
                         </label>
                         <label class="py-2">
-                            <input name="password" type="password" class="border w-full rounded-xl px-2 py-1" placeholder="Password">
+                            <input name="password" type="password" class="border w-full rounded-xl px-2 py-1 text-black" placeholder="Password">
                         </label>
                         <button type="submit" class="border bg-white text-black rounded-xl py-1">Login</button>
                     </form>
                 </div>
             @else
-                <div class="flex flex-col justify-center pt-10">
-                    <div>
-                        Webhook url: ${model.webhookUrl}
+                <div class="flex justify-center pt-10">
+                    <div class="flex flex-col content-center w-5/6 lg:w-3/5 spacing-4 bg-zinc-800 px-6 py-10 rounded-xl">
+                        <div class="flex">
+                            <h1 class="font-bold text-xl text-center text-white">
+                                Dashboard
+                            </h1>
+                            <div class="flex-grow"></div>
+                            <a href="/api/logout" class="text-red-400">Logout</a>
+                        </div>
+                        <div class="pt-4">
+                            Webhook URL: <span id="webhook-url" class="bg-zinc-900 px-2 rounded"></span>
+                        </div>
+                        <div class="pt-4">
+                            <h2 class="font-bold text-lg text-white">
+                                Active environments
+                            </h2>
+                            <div class="flex flex-col justify-center">
+                                @for(environment in model.activeEnvironments)
+                                    <div class="flex flex-row justify-between">
+                                        <div class="flex flex-col">
+                                            <div class="flex flex-row">
+                                                <div class="font-bold text-white">
+                                                    ${environment.branch}
+                                                </div>
+                                            </div>
+                                            @for(service in environment.services)
+                                                <div>
+                                                    ${service.name}: ${service.url}
+                                                </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                @endfor
+                            </div>
+                        </div>
                     </div>
-                    <a href="/logout">Logout</a>
                 </div>
             @endif
         </div>
     </body>
+    <script type="module">
+        document.getElementById('webhook-url').innerText = window.location.origin + '${model.webhookUrl}';
+    </script>
 </html>

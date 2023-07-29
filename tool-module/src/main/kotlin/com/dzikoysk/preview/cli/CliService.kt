@@ -17,12 +17,17 @@ object CliService {
 
     private val executorService = Executors.newCachedThreadPool()
 
+    data class ShellProcess(
+        val process: Process,
+        var hasErrors: Boolean = false
+    )
+
     fun createProcess(
         service: String,
         command: String,
         dir: Path,
         env: Map<String, String> = emptyMap()
-    ): Process {
+    ): ShellProcess {
         val processDir = dir.toAbsolutePath().normalize().toFile()
 
         println("$service | Running command: $command (dir: $processDir)")
@@ -34,10 +39,21 @@ object CliService {
             .also { it.environment().putAll(env) }
             .start()
 
-        val preGobbler = StreamGobbler(process.inputStream) { println("$service | $it") }
-        executorService.submit(preGobbler)
+        val shellProces = ShellProcess(
+            process = process,
+            hasErrors = false
+        )
 
-        return process
+        val standardGobbler = StreamGobbler(process.inputStream) { println("$service | INFO | $it") }
+        executorService.submit(standardGobbler)
+
+        val errorGobbler = StreamGobbler(process.errorStream) {
+            shellProces.hasErrors = true
+            println("$service | ERR | $it")
+        }
+        executorService.submit(errorGobbler)
+
+        return shellProces
     }
 
 }

@@ -40,7 +40,8 @@ fun main(args: Array<String>) {
 
     val uiService = UiService(
         credentials = "admin" to "admin",
-        webhookService = webhookService
+        webhookService = webhookService,
+        runnerService = runnerService
     )
     uiService.initializeRouting(httpServer)
 

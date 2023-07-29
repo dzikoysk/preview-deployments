@@ -3,6 +3,7 @@ package com.dzikoysk.preview.runner
 import com.dzikoysk.preview.PreviewConfig
 import com.dzikoysk.preview.RawString
 import com.dzikoysk.preview.cli.CliService
+import com.dzikoysk.preview.cli.CliService.ShellProcess
 import com.dzikoysk.preview.routing.RoutingService
 import java.nio.file.Files
 import java.nio.file.Path
@@ -13,7 +14,7 @@ class PreviewEnvironment(
     workDir: Path,
     private val id: Int,
     private val url: String,
-    private val branch: String,
+    val branch: String,
     private val reservePort: () -> Int,
     private val routingService: RoutingService
 ) {
@@ -21,10 +22,10 @@ class PreviewEnvironment(
     data class ServiceProcess(
         val name: String,
         val config: PreviewConfig.Service,
-        val childProcess: List<Process>
+        val childProcesses: List<ShellProcess>
     )
 
-    private val processes = mutableListOf<ServiceProcess>()
+    val services = mutableListOf<ServiceProcess>()
     private val branchDir = workDir.resolve(id.toString())
 
     fun createPreview() {
@@ -41,13 +42,13 @@ class PreviewEnvironment(
                     service = "Git",
                     command = "git $sshCommand pull --force; git checkout $branch --force",
                     dir = branchDir
-                ).waitFor()
+                ).process.waitFor()
             else ->
                 CliService.createProcess(
                     service = "Git",
                     command = "git $sshCommand clone ${config.general.gitSource} .; git checkout $branch",
                     dir = branchDir
-                ).waitFor()
+                ).process.waitFor()
         }
 
         val variables = (config.variables ?: emptyMap())
@@ -68,7 +69,7 @@ class PreviewEnvironment(
             ?.map { it.getProcessedValue() }
             ?.forEach { command ->
                 val preProcess = CliService.createProcess("Pre", command, branchDir)
-                val exitCode = preProcess.waitFor()
+                val exitCode = preProcess.process.waitFor()
                 println("Pre | Pre process $command exited with code $exitCode")
             }
 
@@ -96,11 +97,11 @@ class PreviewEnvironment(
                 }
             }
             .forEach { (name, service) ->
-                processes.add(
+                services.add(
                     ServiceProcess(
                         name = name,
                         config = service,
-                        childProcess = service.startCommands.map {
+                        childProcesses = service.startCommands.map {
                             CliService.createProcess(
                                 service = name,
                                 command = it,
@@ -114,16 +115,16 @@ class PreviewEnvironment(
     }
 
     fun destroyPreview() {
-        if (processes.isEmpty()) {
+        if (services.isEmpty()) {
             return
         }
 
-        processes.forEach { serviceProcess ->
+        services.forEach { serviceProcess ->
             println("${serviceProcess.name} | Stopping process ${serviceProcess.name}")
-            serviceProcess.childProcess.forEach {
+            serviceProcess.childProcesses.forEach {
                 try {
-                    it.destroy()
-                    it.waitFor(30, SECONDS)
+                    it.process.destroy()
+                    it.process.waitFor(30, SECONDS)
                 } catch (e: Exception) {
                     println("Failed to stop process ${serviceProcess.name}")
                     e.printStackTrace()
@@ -137,7 +138,7 @@ class PreviewEnvironment(
                             service = serviceProcess.name,
                             command = it,
                             dir = branchDir
-                        ).waitFor()
+                        ).process.waitFor()
                     }
                 } catch (e: Exception) {
                     println("Failed to stop process ${serviceProcess.name}")
@@ -149,7 +150,7 @@ class PreviewEnvironment(
             }
         }
 
-        processes.clear()
+        services.clear()
 
         Files.walk(branchDir).use { stream ->
             stream
