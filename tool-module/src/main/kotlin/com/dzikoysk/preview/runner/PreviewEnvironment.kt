@@ -31,24 +31,26 @@ class PreviewEnvironment(
     fun createPreview() {
         Files.createDirectories(branchDir)
 
-        val sshCommand = when {
-            config.general.sshKey != null -> "-c 'core.sshCommand=ssh -o StrictHostKeyChecking=accept-new -i ${config.general.sshKey}'"
-            else -> ""
-        }
+        if (config.general.gitSource != null) {
+            val sshCommand = when {
+                config.general.sshKey != null -> "-c 'core.sshCommand=ssh -o StrictHostKeyChecking=accept-new -i ${config.general.sshKey}'"
+                else -> ""
+            }
 
-        when {
-            Files.exists(branchDir.resolve(".git")) ->
-                CliService.createProcess(
-                    service = "Git",
-                    command = "git $sshCommand pull --force; git checkout $branch --force",
-                    dir = branchDir
-                ).process.waitFor()
-            else ->
-                CliService.createProcess(
-                    service = "Git",
-                    command = "git $sshCommand clone ${config.general.gitSource} .; git checkout $branch",
-                    dir = branchDir
-                ).process.waitFor()
+            when {
+                Files.exists(branchDir.resolve(".git")) ->
+                    CliService.createProcess(
+                        service = "Git",
+                        command = "git $sshCommand pull --force; git checkout $branch --force",
+                        dir = branchDir
+                    ).process.waitFor()
+                else ->
+                    CliService.createProcess(
+                        service = "Git",
+                        command = "git $sshCommand clone ${config.general.gitSource} .; git checkout $branch",
+                        dir = branchDir
+                    ).process.waitFor()
+            }
         }
 
         val variables = (config.variables ?: emptyMap())

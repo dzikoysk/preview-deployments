@@ -22,6 +22,11 @@ object CliService {
         var hasErrors: Boolean = false
     )
 
+    private enum class OsType {
+        UNIX,
+        WINDOWS,
+    }
+
     fun createProcess(
         service: String,
         command: String,
@@ -29,11 +34,20 @@ object CliService {
         env: Map<String, String> = emptyMap()
     ): ShellProcess {
         val processDir = dir.toAbsolutePath().normalize().toFile()
-
         println("$service | Running command: $command (dir: $processDir)")
 
+        val os = when {
+            System.getProperty("os.name").contains("Windows") -> OsType.WINDOWS
+            else -> OsType.UNIX
+        }
+
         val process = ProcessBuilder()
-            .command("sh", "-c", command)
+            .also {
+                when (os) {
+                    OsType.UNIX -> it.command("sh", "-c", command)
+                    OsType.WINDOWS -> it.command("cmd.exe", "/c", command)
+                }
+            }
             .directory(processDir)
             .inheritIO()
             .also { it.environment().putAll(env) }

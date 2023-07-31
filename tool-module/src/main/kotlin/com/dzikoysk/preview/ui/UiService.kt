@@ -15,7 +15,7 @@ class UiService(
         httpServer
             .get("/") { ctx ->
                 ctx.render(
-                    filePath = "index.kte",
+                    filePath = "index.jte",
                     model = mapOf(
                         "model" to UiModel(
                             loggedIn = ctx.req().session.getAttribute("username") != null,
@@ -36,7 +36,7 @@ class UiService(
                     )
                 )
             }
-            .post("/api/login") {
+            .post("/api/ui/login") {
                 val username = it.formParam("username") ?: throw BadRequestResponse("Missing username")
                 val password = it.formParam("password") ?: throw BadRequestResponse("Missing password")
 
@@ -50,8 +50,13 @@ class UiService(
                     }
                 }
             }
-            .get("/api/logout") {
+            .get("/api/ui/logout") {
                 it.req().session.invalidate()
+                it.redirect("/")
+            }
+            .post("/api/ui/preview") {
+                val branch = it.formParam("branch") ?: throw BadRequestResponse("Missing branch")
+                runnerService.updatePreview(branch)
                 it.redirect("/")
             }
     }

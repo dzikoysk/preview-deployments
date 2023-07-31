@@ -8,14 +8,14 @@ typealias RawString = String
 @Serializable
 data class PreviewConfig(
     val general: General,
-    val branches: Map<String, RawString>,
+    val branches: Map<String, RawString> = mutableMapOf("*" to "preview"),
     val variables: Map<String, RawString>? = null,
     val pre: Pre? = null,
     val services: Map<String, Service>
 ) {
     @Serializable
     data class General(
-        val hostname: RawString,
+        val hostname: RawString = "localhost",
         @SerialName("webhook-port")
         val webhookPort: Int,
         @SerialName("port-range")
@@ -25,7 +25,7 @@ data class PreviewConfig(
         @SerialName("nginx-config")
         val nginxConfig: RawString,
         @SerialName("git-source")
-        val gitSource: RawString,
+        val gitSource: RawString? = null,
         @SerialName("ssh-key")
         val sshKey: RawString? = null
     )
