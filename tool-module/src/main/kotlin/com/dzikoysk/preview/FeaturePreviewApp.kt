@@ -1,6 +1,5 @@
 package com.dzikoysk.preview
 
-import com.charleskorn.kaml.Yaml
 import com.dzikoysk.preview.routing.RoutingService
 import com.dzikoysk.preview.runner.RunnerService
 import com.dzikoysk.preview.ui.UiService
@@ -22,7 +21,8 @@ class FeaturePreviewApp {
             println("Config file not found at ${configFile.toAbsolutePath()}")
             return
         }
-        val config = Yaml.default.decodeFromString(PreviewConfig.serializer(), configFile.readText())
+        val configContent = configFile.readText()
+        val config = YamlConfig.default.decodeFromString(PreviewConfig.serializer(), configContent)
         val workDir = Paths.get(config.general.workingDirectory).absolute().normalize()
 
         val routingService = RoutingService(config, workDir)
@@ -41,6 +41,7 @@ class FeaturePreviewApp {
         webhookService.initializeRouting(httpServer)
 
         val uiService = UiService(
+            config = configContent,
             credentials = "admin" to "admin",
             webhookService = webhookService,
             runnerService = runnerService

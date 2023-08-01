@@ -1,6 +1,5 @@
 package com.dzikoysk.preview
 
-import com.charleskorn.kaml.Yaml
 import com.dzikoysk.preview.PreviewConfig.General
 import kotlinx.serialization.encodeToString
 import java.nio.file.Files
@@ -10,7 +9,7 @@ import kotlin.io.path.absolute
 fun main() {
     val workingDirectory = Files.createTempDirectory("preview").absolute()
     val configFile = workingDirectory.resolve("preview.yml")
-    val configContent = Yaml.default.encodeToString(
+    val configContent = YamlConfig.default.encodeToString(
         PreviewConfig(
             general = General(
                 webhookPort = 8090,

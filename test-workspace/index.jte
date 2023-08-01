@@ -3,6 +3,7 @@
 @import com.dzikoysk.preview.ui.ServiceModel
 @param UiModel model
 
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <title>Feature-preview</title>
@@ -14,10 +15,19 @@
         * {
             font-family: 'Inter', sans-serif;
         }
+        #editor {
+            font-family: monospace;
+        }
+        .ace_editor, .ace_editor *{
+            font-family: "Monaco", "Menlo", "Ubuntu Mono", "Droid Sans Mono", "Consolas", monospace !important;
+            font-size: 14px !important;
+            font-weight: 400 !important;
+            letter-spacing: 0 !important;
+        }
         </style>
     </head>
-    <body class="min-h-full bg-zinc-900 text-white">
-        <div class="container mx-auto">
+    <body class="min-h-full bg-zinc-900 text-white min-w-full">
+        <div class="container-lg mx-auto">
             @if(!model.getLoggedIn())
                 <div class="flex justify-center pt-10">
                     <form
@@ -47,19 +57,29 @@
                             <div class="flex-grow"></div>
                             <a href="/api/ui/logout" class="text-red-400">Logout</a>
                         </div>
-                        <div class="pt-4">
-                            Webhook URL: <span id="webhook-url" class="bg-zinc-900 px-2 rounded"></span>
+                        <div class="pt-2">
+                            <span class="pr-8">Logged as </span>
+                            <span class="bg-zinc-900 px-4 py-1 rounded-lg">${model.getUsername()}</span>
                         </div>
-                        <div class="pt-5">
+                        <div class="pt-2">
+                            <span class="pr-2 w-10">Webhook URL </span>
+                            <span id="webhook-url" class="bg-zinc-900 px-4 py-1 rounded-lg"></span>
+                        </div>
+                        <div class="pt-9">
                             <div class="flex place-content-between">
                                 <h2 class="font-bold text-lg text-white w-1/2">
                                     Active environments
                                 </h2>
                                 <form method="post" action="/api/ui/preview" class="flex w-1/2">
-                                    <label for="branch" class="w-2/3">
-                                        <input name="branch" type="text" class="w-full border rounded-xl rounded-r-none px-2 py-1 text-black" placeholder="Trigger branch" />
+                                    <label for="branch" class="w-2/3 h-6">
+                                        <input
+                                            name="branch"
+                                            type="text"
+                                            class="w-full border rounded-md rounded-r-none px-2 py-0.5 text-sm text-black"
+                                            placeholder="Trigger branch"
+                                        />
                                     </label>
-                                    <button class="w-1/3 border bg-white text-black rounded-xl rounded-l-none py-1">Trigger</button>
+                                    <button class="w-1/3 h-6 border box-content bg-white text-black rounded-lg rounded-l-none text-sm py-0">Trigger</button>
                                 </form>
                             </div>
                             <div class="flex flex-col justify-center">
@@ -96,14 +116,53 @@
                                         </div>
                                     </div>
                                 @endfor
+                                @if(model.getActiveEnvironments().isEmpty())
+                                    <div class="flex flex-row bg-zinc-900 px-4 py-2 rounded-md mt-2">
+                                        <div class="flex flex-col w-full">
+                                            <div class="flex flex-row">
+                                                <div class="font-bold text-white">
+                                                    ~ No active environments ~
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
+                        </div>
+                        <div class="flex flex-col pt-9">
+                            <h2 class="font-bold text-lg text-white w-1/2 pb-4">
+                                Configuration
+                            </h2>
+<div id="editor" class="w-full rounded-xl">${model.getConfig()}</div>
                         </div>
                     </div>
                 </div>
             @endif
         </div>
+        <div class="absolute bottom-4 mx-auto w-full">
+            <div class="w-full text-center">
+                <a href="https://github.com/dzikoysk" class="text-xs">
+                    powered by monke solutions
+                </a>
+            </div>
+        </div>
     </body>
     <script type="module">
         document.getElementById('webhook-url').innerText = window.location.origin + '${model.getWebhookUrl()}';
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.4/ace.min.js"></script>
+    <script>
+        const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/github_dark");
+        editor.session.setMode("ace/mode/yaml");
+        editor.setOptions({
+            indentedSoftWrap: false,
+            tabSize: 2,
+            maxLines: "Infinity",
+            highlightActiveLine: false,
+            showPrintMargin: false,
+        })
+        editor.renderer.setPadding(15, 15, 0, 0);
+        editor.renderer.setScrollMargin(15, 15, 0, 0);
     </script>
 </html>

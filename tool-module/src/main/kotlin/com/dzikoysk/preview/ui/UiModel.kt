@@ -2,8 +2,10 @@ package com.dzikoysk.preview.ui
 
 class UiModel(
     val loggedIn: Boolean,
+    val username: String?,
     val webhookUrl: String,
     val activeEnvironments: List<RunningEnvironmentModel>,
+    val config: String
 )
 
 class RunningEnvironmentModel(

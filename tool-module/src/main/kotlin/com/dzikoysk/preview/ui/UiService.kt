@@ -6,6 +6,7 @@ import io.javalin.Javalin
 import io.javalin.http.BadRequestResponse
 
 class UiService(
+    private val config: String,
     private val credentials: Pair<String, String>,
     private val webhookService: WebhookService,
     private val runnerService: RunnerService
@@ -19,6 +20,7 @@ class UiService(
                     model = mapOf(
                         "model" to UiModel(
                             loggedIn = ctx.req().session.getAttribute("username") != null,
+                            username = ctx.req().session.getAttribute("username")?.toString(),
                             webhookUrl = webhookService.getWebhookLocation(),
                             activeEnvironments = runnerService.getRunningEnvironments().map { env ->
                                 RunningEnvironmentModel(
@@ -31,7 +33,8 @@ class UiService(
                                         )
                                     }
                                 )
-                            }
+                            },
+                            config = config.trim()
                         )
                     )
                 )
