@@ -1,6 +1,7 @@
 package com.dzikoysk.preview.ui
 
 import com.dzikoysk.preview.config.ConfigService
+import com.dzikoysk.preview.config.Credentials
 import com.dzikoysk.preview.runner.RunnerService
 import com.dzikoysk.preview.webhook.WebhookService
 import io.javalin.Javalin
@@ -9,7 +10,7 @@ import io.javalin.http.bodyAsClass
 
 class UiService(
     private val configService: ConfigService,
-    private val credentials: Pair<String, String>,
+    private val credentials: Credentials,
     private val webhookService: WebhookService,
     private val runnerService: RunnerService
 ){
@@ -46,7 +47,7 @@ class UiService(
                 val password = it.formParam("password") ?: throw BadRequestResponse("Missing password")
 
                 when {
-                    username == "admin" && password == "admin" -> {
+                    username == credentials.username && password == credentials.password -> {
                         it.req().session.setAttribute("username", username)
                         it.redirect("/")
                     }

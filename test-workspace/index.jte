@@ -35,16 +35,16 @@
                         action="/api/ui/login"
                         class="flex flex-col content-center w-96 spacing-4 bg-zinc-800 px-6 py-10 rounded-xl"
                     >
-                        <h1 class="font-bold text-xl text-center text-white">
+                        <h1 class="font-bold text-lg text-center text-white">
                             Access the dashboard
                         </h1>
                         <label for="username" class="pt-6">
-                            <input name="username" type="text" class="border w-full rounded-xl px-2 py-1 text-black" placeholder="Username">
+                            <input name="username" type="text" class="border w-full rounded-lg px-2 py-1 text-black text-sm" placeholder="Username">
                         </label>
                         <label class="py-2">
-                            <input name="password" type="password" class="border w-full rounded-xl px-2 py-1 text-black" placeholder="Password">
+                            <input name="password" type="password" class="border w-full rounded-lg px-2 py-1 text-black text-sm" placeholder="Password">
                         </label>
-                        <button type="submit" class="border bg-white text-black rounded-xl py-1">Login</button>
+                        <button type="submit" class="border bg-white text-black rounded-lg py-1 text-sm">Login</button>
                     </form>
                 </div>
             @else

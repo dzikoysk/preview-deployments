@@ -1,8 +1,8 @@
 package com.dzikoysk.preview
 
 import com.dzikoysk.preview.config.ConfigService
+import com.dzikoysk.preview.config.Credentials
 import com.dzikoysk.preview.config.PreviewConfig
-import com.dzikoysk.preview.config.YamlConfig
 import com.dzikoysk.preview.routing.RoutingService
 import com.dzikoysk.preview.runner.RunnerService
 import com.dzikoysk.preview.ui.UiService
@@ -16,10 +16,16 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolute
 
+// java -jar app.jar <port=8080> <username=admin> <password=admin> <path=preview.yml>
 fun main(args: Array<String>) {
-    val configFile = Paths.get(args.getOrNull(0) ?: "preview.yml")
-    val app = FeaturePreviewApp()
-    app.start(configFile)
+    FeaturePreviewApp().start(
+        port = args.getOrNull(0)?.toIntOrNull() ?: 8080,
+        credentials = Credentials(
+            username = args.getOrNull(1) ?: "admin",
+            password = args.getOrNull(2) ?: "admin"
+        ),
+        configFile = Paths.get(args.getOrNull(3) ?: "preview.yml")
+    )
 }
 
 class FeaturePreviewApp {
@@ -28,7 +34,7 @@ class FeaturePreviewApp {
     private lateinit var runnerService: RunnerService
     private lateinit var configService: ConfigService
 
-    fun start(configFile: Path) {
+    fun start(port: Int, credentials: Credentials, configFile: Path) {
         if (!configFile.toFile().exists()) {
             println("Config file not found at ${configFile.toAbsolutePath()}")
             return
@@ -42,15 +48,15 @@ class FeaturePreviewApp {
 
         configService.subscribe {
             stop()
-            initialize(it)
+            initialize(port, credentials, it)
         }
-        initialize(configService.getConfig())
+        initialize(port, credentials, configService.getConfig())
 
         val printingHook = Thread { stop() }
         Runtime.getRuntime().addShutdownHook(printingHook)
     }
 
-    private fun initialize(config: PreviewConfig) {
+    private fun initialize(port: Int, credentials: Credentials, config: PreviewConfig) {
         val workDir = Paths.get(config.general.workingDirectory).absolute().normalize()
 
         val routingService = RoutingService(config, workDir)
@@ -65,13 +71,13 @@ class FeaturePreviewApp {
 
         val uiService = UiService(
             configService = configService,
-            credentials = "admin" to "admin",
+            credentials = credentials,
             webhookService = webhookService,
             runnerService = runnerService
         )
         uiService.initializeRouting(httpServer)
 
-        httpServer.start()
+        httpServer.start(port)
     }
 
     fun stop() {

@@ -1,5 +1,6 @@
 package com.dzikoysk.preview
 
+import com.dzikoysk.preview.config.Credentials
 import com.dzikoysk.preview.config.PreviewConfig
 import com.dzikoysk.preview.config.PreviewConfig.General
 import com.dzikoysk.preview.config.PreviewConfig.Service
@@ -15,7 +16,6 @@ fun main() {
     val configContent = YamlConfig.default.encodeToString(
         PreviewConfig(
             general = General(
-                webhookPort = 8090,
                 portRange = "8091-8099",
                 workingDirectory = workingDirectory.toString(),
                 nginxConfig = workingDirectory.resolve("nginx").toString(),
@@ -29,6 +29,13 @@ fun main() {
         )
     )
     Files.writeString(configFile, configContent, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
-    val app = FeaturePreviewApp()
-    app.start(configFile)
+
+    FeaturePreviewApp().start(
+        port = 8090,
+        credentials = Credentials(
+            username = "admin",
+            password = "admin"
+        ),
+        configFile = configFile
+    )
 }

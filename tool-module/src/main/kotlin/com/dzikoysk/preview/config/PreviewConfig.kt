@@ -8,6 +8,11 @@ import kotlinx.serialization.Serializable
 
 typealias RawString = String
 
+data class Credentials(
+    val username: String,
+    val password: String
+)
+
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class PreviewConfig(
@@ -22,8 +27,6 @@ data class PreviewConfig(
     @Serializable
     data class General(
         val hostname: RawString = "localhost",
-        @SerialName("webhook-port")
-        val webhookPort: Int = 8080,
         @SerialName("port-range")
         val portRange: RawString = "10000-11000",
         @SerialName("working-directory")
