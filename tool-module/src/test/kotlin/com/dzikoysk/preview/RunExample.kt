@@ -1,6 +1,9 @@
 package com.dzikoysk.preview
 
-import com.dzikoysk.preview.PreviewConfig.General
+import com.dzikoysk.preview.config.PreviewConfig
+import com.dzikoysk.preview.config.PreviewConfig.General
+import com.dzikoysk.preview.config.PreviewConfig.Service
+import com.dzikoysk.preview.config.YamlConfig
 import kotlinx.serialization.encodeToString
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -18,7 +21,7 @@ fun main() {
                 nginxConfig = workingDirectory.resolve("nginx").toString(),
             ),
             services = mapOf(
-                "example" to PreviewConfig.Service(
+                "example" to Service(
                     startCommands = listOf("echo 'Hello world!'"),
                     stopCommands = listOf("echo 'Goodbye world!'"),
                 )

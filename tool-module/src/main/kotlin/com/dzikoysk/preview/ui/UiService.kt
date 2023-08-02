@@ -1,12 +1,14 @@
 package com.dzikoysk.preview.ui
 
+import com.dzikoysk.preview.config.ConfigService
 import com.dzikoysk.preview.runner.RunnerService
 import com.dzikoysk.preview.webhook.WebhookService
 import io.javalin.Javalin
 import io.javalin.http.BadRequestResponse
+import io.javalin.http.bodyAsClass
 
 class UiService(
-    private val config: String,
+    private val configService: ConfigService,
     private val credentials: Pair<String, String>,
     private val webhookService: WebhookService,
     private val runnerService: RunnerService
@@ -34,7 +36,7 @@ class UiService(
                                     }
                                 )
                             },
-                            config = config.trim()
+                            config = configService.getConfigAsString().trim()
                         )
                     )
                 )
@@ -60,6 +62,12 @@ class UiService(
             .post("/api/ui/preview") {
                 val branch = it.formParam("branch") ?: throw BadRequestResponse("Missing branch")
                 runnerService.updatePreview(branch)
+                it.redirect("/")
+            }
+            .post("/api/ui/config") {
+                data class ConfigUpdate(val config: String)
+                val config = it.bodyAsClass<ConfigUpdate>().config
+                configService.updateConfig(config)
                 it.redirect("/")
             }
     }

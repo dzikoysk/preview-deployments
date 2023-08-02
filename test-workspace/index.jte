@@ -49,7 +49,7 @@
                 </div>
             @else
                 <div class="flex justify-center pt-10">
-                    <div class="flex flex-col content-center w-5/6 lg:w-3/5 spacing-4 bg-zinc-800 px-6 py-10 rounded-xl">
+                    <div class="flex flex-col content-center w-5/6 lg:w-3/5 spacing-4 bg-zinc-800 text-sm px-6 py-10 rounded-xl">
                         <div class="flex">
                             <h1 class="font-bold text-xl text-center text-white">
                                 Dashboard
@@ -75,11 +75,11 @@
                                         <input
                                             name="branch"
                                             type="text"
-                                            class="w-full border rounded-md rounded-r-none px-2 py-0.5 text-sm text-black"
+                                            class="w-full border rounded-md rounded-r-none px-2 py-0.5 bg-zinc-900 text-sm text-white text-black"
                                             placeholder="Trigger branch"
                                         />
                                     </label>
-                                    <button class="w-1/3 h-6 border box-content bg-white text-black rounded-lg rounded-l-none text-sm py-0">Trigger</button>
+                                    <button class="w-1/3 h-6 border box-content bg-zinc-900 rounded-lg rounded-l-none text-sm py-0">Trigger</button>
                                 </form>
                             </div>
                             <div class="flex flex-col justify-center">
@@ -120,7 +120,7 @@
                                     <div class="flex flex-row bg-zinc-900 px-4 py-2 rounded-md mt-2">
                                         <div class="flex flex-col w-full">
                                             <div class="flex flex-row">
-                                                <div class="font-bold text-white">
+                                                <div class="font-bold text-white text-sm">
                                                     ~ No active environments ~
                                                 </div>
                                             </div>
@@ -129,12 +129,15 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="flex flex-col pt-9">
+                        <div class="flex flex-col pt-9 pb-4">
                             <h2 class="font-bold text-lg text-white w-1/2 pb-4">
                                 Configuration
                             </h2>
 <div id="editor" class="w-full rounded-xl">${model.getConfig()}</div>
                         </div>
+                        <button id="update-config" class="bg-zinc-900 rounded-lg py-2 text-sm">
+                            Update configuration
+                        </button>
                     </div>
                 </div>
             @endif
@@ -147,22 +150,48 @@
             </div>
         </div>
     </body>
-    <script type="module">
-        document.getElementById('webhook-url').innerText = window.location.origin + '${model.getWebhookUrl()}';
-    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.4/ace.min.js"></script>
+    <!--suppress JSUnresolvedReference -->
     <script>
-        const editor = ace.edit("editor");
-        editor.setTheme("ace/theme/github_dark");
-        editor.session.setMode("ace/mode/yaml");
-        editor.setOptions({
-            indentedSoftWrap: false,
-            tabSize: 2,
-            maxLines: "Infinity",
-            highlightActiveLine: false,
-            showPrintMargin: false,
-        })
-        editor.renderer.setPadding(15, 15, 0, 0);
-        editor.renderer.setScrollMargin(15, 15, 0, 0);
+        const webhookUrl = document.getElementById('webhook-url')
+
+        if (webhookUrl) {
+            webhookUrl.innerText = window.location.origin + '${model.getWebhookUrl()}';
+        }
+
+        if (document.getElementById("editor") != null) {
+            const editor = ace.edit("editor");
+            editor.setTheme("ace/theme/github_dark");
+            editor.session.setMode("ace/mode/yaml");
+            editor.setOptions({
+                indentedSoftWrap: false,
+                tabSize: 2,
+                maxLines: "Infinity",
+                highlightActiveLine: false,
+                showPrintMargin: false,
+            })
+            editor.renderer.setPadding(15, 15, 0, 0);
+            editor.renderer.setScrollMargin(15, 15, 0, 0);
+
+            document.getElementById("update-config").addEventListener("click", () => {
+                fetch("/api/ui/config", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        config: editor.getValue()
+                    })
+                })
+                .then(() => window.location.reload())
+                .catch(error => {
+                    if (error.toString().includes("NetworkError")) {
+                        setTimeout(() => window.location.reload(), 1000)
+                    } else {
+                        alert("Failed to update configuration: " + error)
+                    }
+                })
+            })
+        }
     </script>
 </html>

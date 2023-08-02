@@ -1,6 +1,6 @@
 package com.dzikoysk.preview.runner
 
-import com.dzikoysk.preview.PreviewConfig
+import com.dzikoysk.preview.config.PreviewConfig
 import com.dzikoysk.preview.routing.RoutingService
 import java.nio.file.Files
 import java.nio.file.Path

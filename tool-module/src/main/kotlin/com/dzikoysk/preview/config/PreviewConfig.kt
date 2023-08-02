@@ -1,4 +1,4 @@
-package com.dzikoysk.preview
+package com.dzikoysk.preview.config
 
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
@@ -11,25 +11,25 @@ typealias RawString = String
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class PreviewConfig(
-    val general: General,
+    val general: General = General(),
     val branches: Map<String, RawString> = mutableMapOf("*" to "preview"),
     @EncodeDefault(NEVER)
     val variables: Map<String, RawString>? = null,
     @EncodeDefault(NEVER)
     val pre: Pre? = null,
-    val services: Map<String, Service>
+    val services: Map<String, Service> = mapOf("example" to Service())
 ) {
     @Serializable
     data class General(
         val hostname: RawString = "localhost",
         @SerialName("webhook-port")
-        val webhookPort: Int,
+        val webhookPort: Int = 8080,
         @SerialName("port-range")
-        val portRange: RawString,
+        val portRange: RawString = "10000-11000",
         @SerialName("working-directory")
-        val workingDirectory: RawString,
+        val workingDirectory: RawString = "./",
         @SerialName("nginx-config")
-        val nginxConfig: RawString,
+        val nginxConfig: RawString = "/etc/nginx/conf.d/preview.conf",
         @SerialName("git-source")
         @EncodeDefault(NEVER)
         val gitSource: RawString? = null,
@@ -51,9 +51,9 @@ data class PreviewConfig(
         @EncodeDefault(NEVER)
         val public: Public? = null,
         @SerialName("start-commands")
-        val startCommands: List<RawString>,
+        val startCommands: List<RawString> = listOf("echo 'Hello world!'"),
         @SerialName("stop-commands")
-        val stopCommands: List<RawString>,
+        val stopCommands: List<RawString> = listOf("echo 'Goodbye world!'"),
         @EncodeDefault(NEVER)
         val environment: Map<String, RawString>? = null
     ) {

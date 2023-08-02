@@ -1,4 +1,4 @@
-package com.dzikoysk.preview
+package com.dzikoysk.preview.config
 
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
