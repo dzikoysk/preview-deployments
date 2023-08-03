@@ -1,5 +1,7 @@
 package com.dzikoysk.preview.runner
 
+import com.dzikoysk.preview.CachedLogger
+import com.dzikoysk.preview.cli.CliService
 import com.dzikoysk.preview.config.PreviewConfig
 import com.dzikoysk.preview.routing.RoutingService
 import java.nio.file.Files
@@ -7,8 +9,10 @@ import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
 
 class RunnerService(
+    private val logger: CachedLogger,
     private val config: PreviewConfig,
     private val workDir: Path,
+    private val cliService: CliService,
     private val routingService: RoutingService,
 ) {
 
@@ -30,11 +34,13 @@ class RunnerService(
                 val subdomain = branch.replace("/", "-")
                 val url = "${subdomain}.${config.general.hostname}"
                 val environment = PreviewEnvironment(
+                    logger = logger,
                     config = config,
                     workDir = workDir,
                     id = id,
                     url = url,
                     reservePort = { availablePorts.incrementAndGet() },
+                    cliService = cliService,
                     routingService = routingService,
                     branch = branch
                 )

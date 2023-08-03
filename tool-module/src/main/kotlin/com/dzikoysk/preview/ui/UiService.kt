@@ -1,5 +1,6 @@
 package com.dzikoysk.preview.ui
 
+import com.dzikoysk.preview.CachedLogger
 import com.dzikoysk.preview.config.ConfigService
 import com.dzikoysk.preview.config.Credentials
 import com.dzikoysk.preview.runner.RunnerService
@@ -9,6 +10,7 @@ import io.javalin.http.BadRequestResponse
 import io.javalin.http.bodyAsClass
 
 class UiService(
+    private val logger: CachedLogger,
     private val configService: ConfigService,
     private val credentials: Credentials,
     private val webhookService: WebhookService,
@@ -37,7 +39,8 @@ class UiService(
                                     }
                                 )
                             },
-                            config = configService.getConfigAsString().trim()
+                            config = configService.getConfigAsString().trim(),
+                            logs = logger.getMessages()
                         )
                     )
                 )

@@ -5,7 +5,8 @@ class UiModel(
     val username: String?,
     val webhookUrl: String,
     val activeEnvironments: List<RunningEnvironmentModel>,
-    val config: String
+    val config: String,
+    val logs: List<String>
 )
 
 class RunningEnvironmentModel(

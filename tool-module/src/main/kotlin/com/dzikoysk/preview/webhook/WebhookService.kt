@@ -1,10 +1,12 @@
 package com.dzikoysk.preview.webhook
 
+import com.dzikoysk.preview.CachedLogger
 import com.dzikoysk.preview.runner.RunnerService
 import io.javalin.Javalin
 import io.javalin.http.bodyAsClass
 
 class WebhookService(
+    private val logger: CachedLogger,
     private val runnerService: RunnerService
 ) {
 
@@ -24,7 +26,7 @@ class WebhookService(
             webhook.action == "delete" && webhook.ref_type == "branch" ->
                 runnerService.deletePreview(webhook.ref!!.substringAfter("refs/heads/"))
             else ->
-                println("Unknown webhook action: $webhook")
+                logger.log("Unknown webhook action: $webhook")
         }
     }
 

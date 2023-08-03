@@ -12,7 +12,8 @@ typealias InternalPort = Int
 
 class RoutingService(
     private val config: PreviewConfig,
-    private val workDir: Path
+    private val workDir: Path,
+    private val cliService: CliService
 ) {
 
     private val routes = mutableListOf<Pair<PublicUrl, InternalPort>>()
@@ -59,8 +60,8 @@ class RoutingService(
             StandardOpenOption.WRITE
         )
 
-        CliService.createProcess(
-            service = "Nginx",
+        cliService.createProcess(
+            service = "nginx",
             command = "nginx -t && nginx -s reload",
             dir = workDir
         ).process.waitFor()

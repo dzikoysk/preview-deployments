@@ -1,5 +1,6 @@
 package com.dzikoysk.preview.cli
 
+import com.dzikoysk.preview.CachedLogger
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -7,11 +8,17 @@ import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.function.Consumer
 
-object CliService {
+class CliService(private val logger: CachedLogger) {
 
-    private class StreamGobbler(private val inputStream: InputStream, private val consumer: Consumer<String>) : Runnable {
+    private class StreamGobbler(
+        private val inputStream: InputStream,
+        private val consumer: Consumer<String>
+    ) : Runnable {
         override fun run() {
-            BufferedReader(InputStreamReader(inputStream)).lines().forEach(consumer)
+            BufferedReader(InputStreamReader(inputStream))
+                .lines()
+                .flatMap { it.split("\n").stream() }
+                .forEach(consumer)
         }
     }
 
@@ -34,7 +41,7 @@ object CliService {
         env: Map<String, String> = emptyMap()
     ): ShellProcess {
         val processDir = dir.toAbsolutePath().normalize().toFile()
-        println("$service | Running command: $command (dir: $processDir)")
+        logger.log("$service | Running command: $command (dir: $processDir)")
 
         val os = when {
             System.getProperty("os.name").contains("Windows") -> OsType.WINDOWS
@@ -49,7 +56,6 @@ object CliService {
                 }
             }
             .directory(processDir)
-            .inheritIO()
             .also { it.environment().putAll(env) }
             .start()
 
@@ -58,12 +64,14 @@ object CliService {
             hasErrors = false
         )
 
-        val standardGobbler = StreamGobbler(process.inputStream) { println("$service | INFO | $it") }
+        val standardGobbler = StreamGobbler(process.inputStream) {
+            logger.log("$service | INFO | $it")
+        }
         executorService.submit(standardGobbler)
 
         val errorGobbler = StreamGobbler(process.errorStream) {
             shellProces.hasErrors = true
-            println("$service | ERR | $it")
+            logger.log("$service | ERR | $it")
         }
         executorService.submit(errorGobbler)
 

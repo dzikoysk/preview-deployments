@@ -1,5 +1,6 @@
 package com.dzikoysk.preview
 
+import com.dzikoysk.preview.cli.CliService
 import com.dzikoysk.preview.config.ConfigService
 import com.dzikoysk.preview.config.Credentials
 import com.dzikoysk.preview.config.PreviewConfig
@@ -12,6 +13,7 @@ import gg.jte.TemplateEngine
 import gg.jte.resolve.DirectoryCodeResolver
 import io.javalin.Javalin
 import io.javalin.rendering.template.JavalinJte
+import io.javalin.util.JavalinLogger
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolute
@@ -30,13 +32,14 @@ fun main(args: Array<String>) {
 
 class FeaturePreviewApp {
 
+    private val logger = CachedLogger()
     private lateinit var httpServer: Javalin
     private lateinit var runnerService: RunnerService
     private lateinit var configService: ConfigService
 
     fun start(port: Int, credentials: Credentials, configFile: Path) {
         if (!configFile.toFile().exists()) {
-            println("Config file not found at ${configFile.toAbsolutePath()}")
+            logger.log("Config file not found at ${configFile.toAbsolutePath()}")
             return
         }
         this.configService = ConfigService(configFile)
@@ -59,17 +62,36 @@ class FeaturePreviewApp {
     private fun initialize(port: Int, credentials: Credentials, config: PreviewConfig) {
         val workDir = Paths.get(config.general.workingDirectory).absolute().normalize()
 
-        val routingService = RoutingService(config, workDir)
-        this.runnerService = RunnerService(config, workDir, routingService)
+        val cliService = CliService(
+            logger = logger
+        )
+
+        val routingService = RoutingService(
+            config = config,
+            workDir = workDir,
+            cliService = cliService
+
+        )
+        this.runnerService = RunnerService(
+            logger = logger,
+            config = config,
+            workDir = workDir,
+            cliService = cliService,
+            routingService = routingService
+        )
 
         this.httpServer = Javalin.create {
             it.showJavalinBanner = false
         }
 
-        val webhookService = WebhookService(runnerService)
+        val webhookService = WebhookService(
+            logger = logger,
+            runnerService = runnerService
+        )
         webhookService.initializeRouting(httpServer)
 
         val uiService = UiService(
+            logger = logger,
             configService = configService,
             credentials = credentials,
             webhookService = webhookService,
@@ -78,10 +100,11 @@ class FeaturePreviewApp {
         uiService.initializeRouting(httpServer)
 
         httpServer.start(port)
+        logger.log("Feature Preview is running on http://localhost:$port")
     }
 
     fun stop() {
-        println("Stopping services...")
+        logger.log("Stopping services...")
         httpServer.stop()
         runnerService.disposeAllPreviews()
     }

@@ -138,11 +138,23 @@
                         <button id="update-config" class="bg-zinc-900 rounded-lg py-2 text-sm">
                             Update configuration
                         </button>
+                        <div class="flex flex-col pt-9 pb-4">
+                            <h2 class="font-bold text-lg text-white w-1/2 pb-4">
+                                Logs
+                            </h2>
+                            <div class="w-full overflow-x-scroll max-h-md flex">
+                                <div class="bg-zinc-900 rounded-xl rounded-b-none flex flex-col px-4 py-3 min-w-full">
+                                    @for(String log : model.getLogs())
+                                        <p class="whitespace-nowrap">${log}</p>
+                                    @endfor
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endif
         </div>
-        <div class="absolute bottom-4 mx-auto w-full">
+        <div class="py-4 w-full">
             <div class="w-full text-center">
                 <a href="https://github.com/dzikoysk" class="text-xs">
                     powered by monke solutions

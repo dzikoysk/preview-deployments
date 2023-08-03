@@ -12,7 +12,7 @@ allprojects {
     apply(plugin = "application")
     apply(plugin = "signing")
 
-    group = "org.example"
+    group = "com.dzikoysk"
     version = "1.0.0"
 
     repositories {

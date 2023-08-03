@@ -4,13 +4,13 @@ plugins {
 }
 
 application {
-    mainClass.set("com.dzikoysk.preview.MainKt")
+    mainClass.set("com.dzikoysk.preview.FeaturePreviewKt")
 }
 
 dependencies {
     implementation("com.charleskorn.kaml:kaml:0.54.0")
-    implementation("io.javalin:javalin-bundle:5.6.1")
-    implementation("io.javalin:javalin-rendering:5.6.0")
+    implementation("io.javalin:javalin-bundle:5.6.2")
+    implementation("io.javalin:javalin-rendering:5.6.2")
     implementation("gg.jte:jte:2.3.2")
     implementation("gg.jte:jte-kotlin:2.3.2")
 }

@@ -1,5 +1,6 @@
 package com.dzikoysk.preview.runner
 
+import com.dzikoysk.preview.CachedLogger
 import com.dzikoysk.preview.config.PreviewConfig
 import com.dzikoysk.preview.cli.CliService
 import com.dzikoysk.preview.cli.CliService.ShellProcess
@@ -10,13 +11,15 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit.SECONDS
 
 class PreviewEnvironment(
+    private val logger: CachedLogger,
     private val config: PreviewConfig,
     workDir: Path,
     private val id: Int,
     private val url: String,
     val branch: String,
     private val reservePort: () -> Int,
-    private val routingService: RoutingService
+    private val routingService: RoutingService,
+    private val cliService: CliService
 ) {
 
     data class ServiceProcess(
@@ -39,13 +42,13 @@ class PreviewEnvironment(
 
             when {
                 Files.exists(branchDir.resolve(".git")) ->
-                    CliService.createProcess(
+                cliService.createProcess(
                         service = "Git",
                         command = "git $sshCommand pull --force; git checkout $branch --force",
                         dir = branchDir
                     ).process.waitFor()
                 else ->
-                    CliService.createProcess(
+                    cliService.createProcess(
                         service = "Git",
                         command = "git $sshCommand clone ${config.general.gitSource} .; git checkout $branch",
                         dir = branchDir
@@ -70,9 +73,9 @@ class PreviewEnvironment(
         config.pre?.commands
             ?.map { it.getProcessedValue() }
             ?.forEach { command ->
-                val preProcess = CliService.createProcess("Pre", command, branchDir)
+                val preProcess = cliService.createProcess("Pre", command, branchDir)
                 val exitCode = preProcess.process.waitFor()
-                println("Pre | Pre process $command exited with code $exitCode")
+                logger.log("Pre | Pre process $command exited with code $exitCode")
             }
 
         config.services
@@ -104,7 +107,7 @@ class PreviewEnvironment(
                         name = name,
                         config = service,
                         childProcesses = service.startCommands.map {
-                            CliService.createProcess(
+                            cliService.createProcess(
                                 service = name,
                                 command = it,
                                 dir = branchDir.resolve(service.source ?: ""),
@@ -122,28 +125,28 @@ class PreviewEnvironment(
         }
 
         services.forEach { serviceProcess ->
-            println("${serviceProcess.name} | Stopping process ${serviceProcess.name}")
+            logger.log("${serviceProcess.name} | Stopping process ${serviceProcess.name}")
             serviceProcess.childProcesses.forEach {
                 try {
                     it.process.destroy()
                     it.process.waitFor(30, SECONDS)
                 } catch (e: Exception) {
-                    println("Failed to stop process ${serviceProcess.name}")
-                    e.printStackTrace()
+                    logger.log("Failed to stop process ${serviceProcess.name}")
+                    e.printStackTrace(logger.printStream())
                 }
             }
             serviceProcess.config.stopCommands.forEach {
                 try {
                     when(it) {
                         "\$exit" -> { /* process already stopped */ }
-                        else -> CliService.createProcess(
+                        else -> cliService.createProcess(
                             service = serviceProcess.name,
                             command = it,
                             dir = branchDir
                         ).process.waitFor()
                     }
                 } catch (e: Exception) {
-                    println("Failed to stop process ${serviceProcess.name}")
+                    logger.log("Failed to stop process ${serviceProcess.name}")
                     e.printStackTrace()
                 }
             }
