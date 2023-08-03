@@ -18,11 +18,14 @@
         #editor {
             font-family: monospace;
         }
-        .ace_editor, .ace_editor *{
+        .ace_editor, .ace_editor * {
             font-family: "Monaco", "Menlo", "Ubuntu Mono", "Droid Sans Mono", "Consolas", monospace !important;
             font-size: 14px !important;
             font-weight: 400 !important;
             letter-spacing: 0 !important;
+        }
+        #console p {
+            font-family: "Monaco", "Menlo", "Ubuntu Mono", "Droid Sans Mono", "Consolas", monospace !important;
         }
         </style>
     </head>
@@ -143,7 +146,7 @@
                                 Logs
                             </h2>
                             <div class="w-full overflow-x-scroll max-h-md flex">
-                                <div class="bg-zinc-900 rounded-xl rounded-b-none flex flex-col px-4 py-3 min-w-full">
+                                <div id="console" class="bg-zinc-900 rounded-xl rounded-b-none flex flex-col px-4 py-3 min-w-full">
                                     @for(String log : model.getLogs())
                                         <p class="whitespace-nowrap">${log}</p>
                                     @endfor

@@ -1,6 +1,7 @@
 package com.dzikoysk.preview.runner
 
 import com.dzikoysk.preview.CachedLogger
+import com.dzikoysk.preview.LoggerLevel.ERR
 import com.dzikoysk.preview.config.PreviewConfig
 import com.dzikoysk.preview.cli.CliService
 import com.dzikoysk.preview.cli.CliService.ShellProcess
@@ -73,9 +74,16 @@ class PreviewEnvironment(
         config.pre?.commands
             ?.map { it.getProcessedValue() }
             ?.forEach { command ->
-                val preProcess = cliService.createProcess("Pre", command, branchDir)
+                val preProcess = cliService.createProcess(
+                    service = "[pre]",
+                    command = command,
+                    dir = branchDir
+                )
                 val exitCode = preProcess.process.waitFor()
-                logger.log("Pre | Pre process $command exited with code $exitCode")
+                logger.log(
+                    service = "[pre]",
+                    message = "Pre process $command exited with code $exitCode"
+                )
             }
 
         config.services
@@ -125,14 +133,17 @@ class PreviewEnvironment(
         }
 
         services.forEach { serviceProcess ->
-            logger.log("${serviceProcess.name} | Stopping process ${serviceProcess.name}")
+            logger.log(
+                service = serviceProcess.name,
+                message = "Stopping process ${serviceProcess.name}"
+            )
             serviceProcess.childProcesses.forEach {
                 try {
                     it.process.destroy()
                     it.process.waitFor(30, SECONDS)
                 } catch (e: Exception) {
-                    logger.log("Failed to stop process ${serviceProcess.name}")
-                    e.printStackTrace(logger.printStream())
+                    logger.log(ERR, serviceProcess.name, "Failed to stop process ${serviceProcess.name}")
+                    e.printStackTrace(logger.stacktracePrintStream(serviceProcess.name))
                 }
             }
             serviceProcess.config.stopCommands.forEach {
@@ -146,8 +157,8 @@ class PreviewEnvironment(
                         ).process.waitFor()
                     }
                 } catch (e: Exception) {
-                    logger.log("Failed to stop process ${serviceProcess.name}")
-                    e.printStackTrace()
+                    logger.log(ERR, serviceProcess.name, "Failed to stop process ${serviceProcess.name}")
+                    e.printStackTrace(logger.stacktracePrintStream(serviceProcess.name))
                 }
             }
             serviceProcess.config.public?.let {

@@ -39,7 +39,7 @@ class FeaturePreviewApp {
 
     fun start(port: Int, credentials: Credentials, configFile: Path) {
         if (!configFile.toFile().exists()) {
-            logger.log("Config file not found at ${configFile.toAbsolutePath()}")
+            logger.log(message = "Config file not found at ${configFile.toAbsolutePath()}")
             return
         }
         this.configService = ConfigService(configFile)
@@ -100,11 +100,11 @@ class FeaturePreviewApp {
         uiService.initializeRouting(httpServer)
 
         httpServer.start(port)
-        logger.log("Feature Preview is running on http://localhost:$port")
+        logger.log(message = "Feature Preview is running on http://localhost:$port")
     }
 
     fun stop() {
-        logger.log("Stopping services...")
+        logger.log(message = "Stopping services...")
         httpServer.stop()
         runnerService.disposeAllPreviews()
     }

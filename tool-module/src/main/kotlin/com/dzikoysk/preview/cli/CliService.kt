@@ -1,6 +1,7 @@
 package com.dzikoysk.preview.cli
 
 import com.dzikoysk.preview.CachedLogger
+import com.dzikoysk.preview.LoggerLevel.ERR
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -41,7 +42,7 @@ class CliService(private val logger: CachedLogger) {
         env: Map<String, String> = emptyMap()
     ): ShellProcess {
         val processDir = dir.toAbsolutePath().normalize().toFile()
-        logger.log("$service | Running command: $command (dir: $processDir)")
+        logger.log(service = service, message = "Running command: $command (dir: $processDir)")
 
         val os = when {
             System.getProperty("os.name").contains("Windows") -> OsType.WINDOWS
@@ -65,13 +66,13 @@ class CliService(private val logger: CachedLogger) {
         )
 
         val standardGobbler = StreamGobbler(process.inputStream) {
-            logger.log("$service | INFO | $it")
+            logger.log(service = service, message = it)
         }
         executorService.submit(standardGobbler)
 
         val errorGobbler = StreamGobbler(process.errorStream) {
             shellProces.hasErrors = true
-            logger.log("$service | ERR | $it")
+            logger.log(ERR, service, it)
         }
         executorService.submit(errorGobbler)
 

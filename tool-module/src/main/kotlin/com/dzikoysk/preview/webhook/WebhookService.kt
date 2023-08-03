@@ -26,7 +26,10 @@ class WebhookService(
             webhook.action == "delete" && webhook.ref_type == "branch" ->
                 runnerService.deletePreview(webhook.ref!!.substringAfter("refs/heads/"))
             else ->
-                logger.log("Unknown webhook action: $webhook")
+                logger.log(
+                    service = "[webhook]",
+                    message = "Unknown webhook action: $webhook"
+                )
         }
     }
 
