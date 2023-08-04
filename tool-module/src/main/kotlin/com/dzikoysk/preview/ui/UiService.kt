@@ -7,7 +7,11 @@ import com.dzikoysk.preview.runner.RunnerService
 import com.dzikoysk.preview.webhook.WebhookService
 import io.javalin.Javalin
 import io.javalin.http.BadRequestResponse
+import io.javalin.http.Context
+import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.bodyAsClass
+
+const val USERNAME_SESSION_ATTRIBUTE = "username"
 
 class UiService(
     private val logger: CachedLogger,
@@ -24,8 +28,8 @@ class UiService(
                     filePath = "index.jte",
                     model = mapOf(
                         "model" to UiModel(
-                            loggedIn = ctx.req().session.getAttribute("username") != null,
-                            username = ctx.req().session.getAttribute("username")?.toString(),
+                            loggedIn = ctx.sessionAttribute<String>(USERNAME_SESSION_ATTRIBUTE) != null,
+                            username = ctx.sessionAttribute<String>(USERNAME_SESSION_ATTRIBUTE),
                             webhookUrl = webhookService.getWebhookLocation(),
                             activeEnvironments = runnerService.getRunningEnvironments().map { env ->
                                 RunningEnvironmentModel(
@@ -51,12 +55,10 @@ class UiService(
 
                 when {
                     username == credentials.username && password == credentials.password -> {
-                        it.req().session.setAttribute("username", username)
+                        it.sessionAttribute(USERNAME_SESSION_ATTRIBUTE, username)
                         it.redirect("/")
                     }
-                    else -> {
-                        it.redirect("/?error=Invalid credentials")
-                    }
+                    else -> it.redirect("/?error=Invalid credentials")
                 }
             }
             .get("/api/ui/logout") {
@@ -64,16 +66,24 @@ class UiService(
                 it.redirect("/")
             }
             .post("/api/ui/preview") {
+                it.throwIfNotLoggedIn()
                 val branch = it.formParam("branch") ?: throw BadRequestResponse("Missing branch")
                 runnerService.updatePreview(branch)
                 it.redirect("/")
             }
             .post("/api/ui/config") {
+                it.throwIfNotLoggedIn()
                 data class ConfigUpdate(val config: String)
                 val config = it.bodyAsClass<ConfigUpdate>().config
                 configService.updateConfig(config)
                 it.redirect("/")
             }
+    }
+
+    private fun Context.throwIfNotLoggedIn() {
+        if (this.sessionAttribute<String>(USERNAME_SESSION_ATTRIBUTE) == null) {
+            throw UnauthorizedResponse("Not logged in")
+        }
     }
 
 }
