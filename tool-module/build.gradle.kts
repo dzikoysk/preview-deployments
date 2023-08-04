@@ -12,5 +12,4 @@ dependencies {
     implementation("io.javalin:javalin-bundle:5.6.2")
     implementation("io.javalin:javalin-rendering:5.6.2")
     implementation("gg.jte:jte:2.3.2")
-    implementation("gg.jte:jte-kotlin:2.3.2")
 }

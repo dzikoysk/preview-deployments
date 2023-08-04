@@ -145,10 +145,14 @@
                             <h2 class="font-bold text-lg text-white w-1/2 pb-4">
                                 Logs
                             </h2>
-                            <div class="w-full overflow-x-scroll max-h-md flex">
-                                <div id="console" class="bg-zinc-900 rounded-xl rounded-b-none flex flex-col px-4 py-3 min-w-full">
+                            <div class="w-full overflow-x-scroll max-h-[900px] flex bg-zinc-900 rounded-xl">
+                                <div id="console" class="rounded-b-none flex flex-col py-3 min-w-full">
                                     @for(String log : model.getLogs())
-                                        <p class="whitespace-nowrap">${log}</p>
+                                        @if(log.contains("| ERR |"))
+                                            <p class="whitespace-nowrap text-red-400 px-4">${log}</p>
+                                        @else
+                                            <p class="whitespace-nowrap px-4">${log}</p>
+                                        @endif
                                     @endfor
                                 </div>
                             </div>
@@ -207,6 +211,9 @@
                     }
                 })
             })
+
+            const consoleView = document.getElementById("console");
+            consoleView.scrollTop = consoleView.scrollHeight;
         }
     </script>
 </html>

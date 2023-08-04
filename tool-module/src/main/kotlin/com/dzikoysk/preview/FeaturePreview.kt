@@ -10,10 +10,9 @@ import com.dzikoysk.preview.ui.UiService
 import com.dzikoysk.preview.webhook.WebhookService
 import gg.jte.ContentType
 import gg.jte.TemplateEngine
-import gg.jte.resolve.DirectoryCodeResolver
+import gg.jte.resolve.ResourceCodeResolver
 import io.javalin.Javalin
 import io.javalin.rendering.template.JavalinJte
-import io.javalin.util.JavalinLogger
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolute
@@ -44,8 +43,8 @@ class FeaturePreviewApp {
         }
         this.configService = ConfigService(configFile)
 
-//    val codeResolver = ResourceCodeResolver("templates")
-        val codeResolver = DirectoryCodeResolver(Paths.get(".").absolute().normalize())
+        val codeResolver = ResourceCodeResolver("templates")
+//        val codeResolver = DirectoryCodeResolver(Paths.get(".").absolute().normalize())
         val templatingEngine = TemplateEngine.create(codeResolver, ContentType.Html)
         JavalinJte.init(templatingEngine)
 

@@ -42,7 +42,11 @@ class CliService(private val logger: CachedLogger) {
         env: Map<String, String> = emptyMap()
     ): ShellProcess {
         val processDir = dir.toAbsolutePath().normalize().toFile()
-        logger.log(service = service, message = "Running command: $command (dir: $processDir)")
+
+        logger.log(
+            service = service,
+            message = "Running command: $command (dir: $processDir)"
+        )
 
         val os = when {
             System.getProperty("os.name").contains("Windows") -> OsType.WINDOWS

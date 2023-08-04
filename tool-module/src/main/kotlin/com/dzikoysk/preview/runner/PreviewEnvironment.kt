@@ -128,10 +128,6 @@ class PreviewEnvironment(
     }
 
     fun destroyPreview() {
-        if (services.isEmpty()) {
-            return
-        }
-
         services.forEach { serviceProcess ->
             logger.log(
                 service = serviceProcess.name,
@@ -166,12 +162,14 @@ class PreviewEnvironment(
             }
         }
 
-        services.clear()
-
         Files.walk(branchDir).use { stream ->
             stream
                 .sorted(Comparator.reverseOrder())
-                .forEach(Files::delete)
+                .forEach {
+                    runCatching {
+                        Files.deleteIfExists(it)
+                    }
+                }
         }
         Files.deleteIfExists(branchDir)
     }
