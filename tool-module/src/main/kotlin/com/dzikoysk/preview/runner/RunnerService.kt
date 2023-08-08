@@ -16,12 +16,16 @@ class RunnerService(
     private val routingService: RoutingService,
 ) {
 
-    private val idAssigner = AtomicInteger()
-    private val availablePorts = AtomicInteger(config.general.portRange.split("-")[0].toInt())
+    companion object {
+        private val idAssigner = AtomicInteger()
+        private var availablePorts: Lazy<AtomicInteger>? = null
+    }
+
     private val environments = mutableMapOf<String, PreviewEnvironment>()
 
     init {
         Files.createDirectories(workDir)
+        availablePorts = lazy { AtomicInteger(config.general.portRange.split("-")[0].toInt()) }
     }
 
     fun updatePreview(branch: String) {
@@ -39,7 +43,7 @@ class RunnerService(
                     workDir = workDir,
                     id = id,
                     url = url,
-                    reservePort = { availablePorts.incrementAndGet() },
+                    reservePort = { availablePorts!!.value.incrementAndGet() },
                     cliService = cliService,
                     routingService = routingService,
                     branch = branch
