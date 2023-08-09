@@ -62,7 +62,12 @@ class PreviewEnvironment(
                 value
                     .replace("id()", id.toString())
                     .replace("url()", url)
-                    .replace("port()", reservePort().toString())
+                    .let {
+                        when {
+                            "port()" in it -> it.replace("port()", reservePort().toString())
+                            else -> it
+                        }
+                    }
             }
             .toMap()
 
@@ -135,8 +140,7 @@ class PreviewEnvironment(
             )
             serviceProcess.childProcesses.forEach {
                 try {
-                    it.process.destroy()
-                    it.process.waitFor(30, SECONDS)
+                    it.process.destroyForcibly()
                 } catch (e: Exception) {
                     logger.log(ERR, serviceProcess.name, "Failed to stop process ${serviceProcess.name}")
                     e.printStackTrace(logger.stacktracePrintStream(serviceProcess.name))

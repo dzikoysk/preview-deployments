@@ -24,8 +24,12 @@ class RunnerService(
     private val environments = mutableMapOf<String, PreviewEnvironment>()
 
     init {
+        // TODO: Impl a better port handler
+        if (availablePorts == null) {
+            availablePorts = lazy { AtomicInteger(config.general.portRange.split("-")[0].toInt()) }
+        }
+
         Files.createDirectories(workDir)
-        availablePorts = lazy { AtomicInteger(config.general.portRange.split("-")[0].toInt()) }
     }
 
     fun updatePreview(branch: String) {
