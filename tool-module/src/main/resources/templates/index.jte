@@ -109,7 +109,7 @@
                                                     <div>
                                                         Published at
                                                         @if(service.getUrl() != null)
-                                                            <a href="${service.getUrl()}">${service.getUrl()}</a>
+                                                            <a href="${service.getUrl()}" target="_blank">${service.getUrl()}</a>
                                                         @else
                                                             None
                                                         @endif
