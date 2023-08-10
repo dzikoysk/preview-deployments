@@ -133,38 +133,47 @@ class PreviewEnvironment(
     }
 
     fun destroyPreview() {
-        services.forEach { serviceProcess ->
-            logger.log(
-                service = serviceProcess.name,
-                message = "Stopping process ${serviceProcess.name}"
-            )
-            serviceProcess.childProcesses.forEach {
-                try {
-                    it.process.destroyForcibly()
-                } catch (e: Exception) {
-                    logger.log(ERR, serviceProcess.name, "Failed to stop process ${serviceProcess.name}")
-                    e.printStackTrace(logger.stacktracePrintStream(serviceProcess.name))
+        for (serviceProcess in services) {
+            try {
+                logger.log(
+                    service = serviceProcess.name,
+                    message = "Stopping process ${serviceProcess.name}"
+                )
+                serviceProcess.config.public?.let {
+                    routingService.unregisterRoute(it.url)
                 }
-            }
-            serviceProcess.config.stopCommands.forEach {
-                try {
-                    when(it) {
-                        "\$exit" -> { /* process already stopped */ }
-                        else -> cliService.createProcess(
-                            service = serviceProcess.name,
-                            command = it,
-                            dir = branchDir
-                        ).process.waitFor()
+                serviceProcess.childProcesses.forEach {
+                    try {
+                        it.process.destroyForcibly()
+                    } catch (e: Exception) {
+                        logger.log(ERR, serviceProcess.name, "Failed to stop process ${serviceProcess.name}")
+                        e.printStackTrace(logger.stacktracePrintStream(serviceProcess.name))
                     }
-                } catch (e: Exception) {
-                    logger.log(ERR, serviceProcess.name, "Failed to stop process ${serviceProcess.name}")
-                    e.printStackTrace(logger.stacktracePrintStream(serviceProcess.name))
                 }
-            }
-            serviceProcess.config.public?.let {
-                routingService.unregisterRoute(it.url)
+                serviceProcess.config.stopCommands.forEach {
+                    try {
+                        when (it) {
+                            "\$exit" -> { /* process already stopped */
+                            }
+
+                            else -> cliService.createProcess(
+                                service = serviceProcess.name,
+                                command = it,
+                                dir = branchDir
+                            ).process.waitFor()
+                        }
+                    } catch (e: Exception) {
+                        logger.log(ERR, serviceProcess.name, "Failed to stop process ${serviceProcess.name}")
+                        e.printStackTrace(logger.stacktracePrintStream(serviceProcess.name))
+                    }
+                }
+            } catch (e: Exception) {
+                logger.log(ERR, serviceProcess.name, "Failed to stop process ${serviceProcess.name}")
+                e.printStackTrace(logger.stacktracePrintStream(serviceProcess.name))
             }
         }
+
+        services.clear()
 
         Files.walk(branchDir).use { stream ->
             stream
