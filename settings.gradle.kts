@@ -1,4 +1,4 @@
 
-rootProject.name = "feature-preview"
+rootProject.name = "preview-deployments"
 
 include("tool-module")

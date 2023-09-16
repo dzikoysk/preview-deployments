@@ -1,5 +1,5 @@
 general:
-  hostname: dev.preservly.com
+  hostname: preview.thatapp.com
   port-range: 10000-11000
   working-directory: ./previews
   nginx-config: /etc/nginx/sites-enabled/preview.conf
