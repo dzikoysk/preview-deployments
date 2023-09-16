@@ -46,22 +46,15 @@ The `preview.yml` configuration file should look like this:
 
 ```yaml
 general:
-  # Root domain for preview deployments
-  hostname: "preview.thatapp.com"
-  # Available ports for all services
-  port-range: "11010-12000"
-  # App working directory (useful for multiple preview deployments instances on the same machine)
-  working-directory: "./that-app"
-  # Nginx's configuration file that will be managed by this instance
-  nginx-config: "/etc/nginx/sites-enabled/thatapp-preview.conf"
-  # Sources
-  git-source: "git@github.com:dzikoysk/thatapp.git"
-  # Configured SSH key that will be used to clone repository
-  ssh-key: "/home/dzikoysk/.ssh/github_dzikoysk_thatapp"
+  hostname: "preview.thatapp.com"                                # Root domain for preview deployments
+  port-range: "11010-12000"                                      # Available ports for all services
+  working-directory: "./that-app"                                # App working directory (useful for multiple preview deployments instances on the same machine)
+  nginx-config: "/etc/nginx/sites-enabled/thatapp-preview.conf"  # Nginx's configuration file that will be managed by this instance
+  git-source: "git@github.com:dzikoysk/thatapp.git"              # Sources that will be cloned
+  ssh-key: "/home/dzikoysk/.ssh/github_dzikoysk_thatapp"         # Configured SSH key that will be used to clone repository
 branches:
-  # You can list multiple branches by name or use a wildcard (*). 
-  "*": "preview"
-variables:
+  "*": "preview"  # You can list multiple branches by name or use a wildcard (*). 
+variables: # Variables that can be used in pre/services sections 
   "env-id": "id()"
   "preview-url": "url()"
   "backend-port": "port()"
@@ -70,26 +63,26 @@ variables:
   "frontend-dir": "thatapp-frontend"
   "postgres-port": "port()"
 pre:
-  commands:
-  - "docker pull postgres:latest"
-  - "chmod +x ./${backend-dir}/gradlew"
-services:
-  "postgres":
-    start-commands:
-    - "docker run --name postgres${env-id} -p ${postgres-port}:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres -d postgres"
-    stop-commands:
-    - "docker stop postgres${env-id}"
-    - "docker rm postgres${env-id}"
+  commands: # Commands that will be executed before starting services
+    - "docker pull postgres:latest"
+    - "chmod +x ./${backend-dir}/gradlew"
+services: # List of services that will be started for each branch
+  "postgres": # Service name
+    start-commands: # Start the service, e.g. run docker container
+      - "docker run --name postgres${env-id} -p ${postgres-port}:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres -d postgres"
+    stop-commands: # Stop & cleanup service
+      - "docker stop postgres${env-id}"
+      - "docker rm postgres${env-id}"
   "backend":
-    source: "./${backend-dir}"
-    public:
+    source: "./${backend-dir}" # Path to service sources (relative to working directory)
+    public: # Public URL configuration
       port: "${backend-port}"
       url: "api.${preview-url}:80"
     start-commands:
-    - "./gradlew build -x integrationTest --no-daemon && java -jar build/libs/thatapp-backend-0.0.1-SNAPSHOT.jar"
+      - "./gradlew build -x integrationTest --no-daemon && java -jar build/libs/thatapp-backend-0.0.1-SNAPSHOT.jar"
     stop-commands:
-    - "$exit"
-    environment:
+      - "$exit"
+    environment: # Environment variables that will be passed to service
       "SERVER_PORT": "${backend-port}"
       "SPRING_PROFILES_ACTIVE": "prod"
       "FRONTEND_URL": "${preview-url}"
@@ -102,9 +95,9 @@ services:
       port: "${frontend-port}"
       url: "${preview-url}:80"
     start-commands:
-    - "npm install && npm run build && npm run start -- -p ${frontend-port}"
+      - "npm install && npm run build && npm run start -- -p ${frontend-port}"
     stop-commands:
-    - "$exit"
+      - "$exit"
     environment:
       "NODE_ENV": "production"
       "API_URL": "api.${preview-url}:${backend-port}"
